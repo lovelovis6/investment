@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<meta name="apple-mobile-web-app-title" content="利潤管家">
+<meta name="theme-color" content="#ffffff">
+<title>利潤管家</title>
+<style>
+  :root {
+    /* 主色：焦糖棕 */
+    --purple: #8B6343;
+    --purple-light: #F5EDE4;
+    --purple-mid: #DEC4AA;
+    --purple-dark: #5C3D1E;
+
+    /* 成功：抹茶綠 */
+    --green: #5C8A5C;
+    --green-light: #E8F0E8;
+
+    /* 警示：蜂蜜橙 */
+    --orange: #C8872A;
+    --orange-light: #FDF0DC;
+    --orange-dark: #7A4E0D;
+
+    /* 危險：玫瑰紅 */
+    --red: #C45C5C;
+    --red-light: #FAE8E8;
+
+    /* 背景：奶茶米 */
+    --gray: #9B8878;
+    --gray-light: #F7F1EC;
+    --gray-mid: #EDE3D9;
+
+    --border: rgba(139,99,67,0.15);
+    --text: #2C1A0E;
+    --text-sub: #9B8878;
+    --white: #FFFCF9;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'SF Pro Text', sans-serif; background: #F7F1EC !important; color: #2C1A0E !important; color-scheme: light; }
+  input, select, textarea, button { font-family: inherit; font-size: 16px; background-color: transparent; color: #2C1A0E; }
+  input, select, textarea { background-color: #F7F1EC !important; color: #2C1A0E !important; }
+  .card, .metric-box, .status-bar, .nav-bar, .tab-bar, .sheet, .alert-box { background-color: #FFFCF9 !important; color: #2C1A0E !important; }
+  .summary-box { background-color: #F5EDE4 !important; }
+  .try-box, .search-bar { background-color: #EDE3D9 !important; }
+  .form-input { background-color: #F7F1EC !important; color: #2C1A0E !important; border-color: rgba(139,99,67,0.2) !important; }
+
+  /* Layout */
+  #app { height: 100%; display: flex; flex-direction: column; max-width: 430px; margin: 0 auto; position: relative; }
+  .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .screen.active { display: flex; }
+  .scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* Status bar */
+  .status-bar { height: 44px; background: var(--white); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; font-size: 15px; font-weight: 500; }
+
+  /* Nav bar */
+  .nav-bar { background: var(--white); border-bottom: 0.5px solid var(--border); padding: 8px 16px 10px; flex-shrink: 0; }
+  .nav-row { display: flex; align-items: center; justify-content: space-between; }
+  .nav-title { font-size: 17px; font-weight: 600; }
+  .nav-back { display: flex; align-items: center; gap: 4px; font-size: 16px; color: var(--purple); cursor: pointer; }
+  .nav-action { font-size: 15px; color: var(--purple); font-weight: 500; cursor: pointer; }
+  .nav-btn-circle { width: 28px; height: 28px; border-radius: 50%; background: var(--purple-light); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  /* Search bar */
+  .search-bar { background: var(--gray-light); border-radius: 10px; padding: 7px 12px; margin-top: 8px; display: flex; gap: 6px; align-items: center; }
+  .search-bar input { background: none; border: none; outline: none; flex: 1; font-size: 14px; color: var(--text); }
+  .search-bar input::placeholder { color: var(--gray); }
+
+  /* Tab bar */
+  .tab-bar { height: calc(56px + var(--safe-bottom)); background: var(--white); border-top: 0.5px solid var(--border); display: flex; align-items: flex-start; justify-content: space-around; flex-shrink: 0; padding-top: 6px; padding-bottom: var(--safe-bottom); }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; padding: 0 12px; }
+  .tab-item span { font-size: 10px; color: var(--gray); }
+  .tab-item.active span { color: var(--purple); }
+  .tab-item svg { transition: transform 0.15s; }
+  .tab-item:active svg { transform: scale(0.9); }
+
+  /* Cards */
+  .card { background: var(--white); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+
+  /* Section label */
+  .sec-lbl { font-size: 12px; font-weight: 500; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin: 12px 0 6px 2px; }
+
+  /* Metric grid */
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .metric-box { background: var(--white); border-radius: 10px; padding: 10px 12px; }
+  .metric-label { font-size: 11px; color: var(--gray); margin-bottom: 3px; }
+  .metric-val { font-size: 17px; font-weight: 700; }
+  .metric-val.green { color: var(--green); }
+  .metric-val.orange { color: var(--orange); }
+  .metric-val.red { color: var(--red); }
+  .metric-val.small { font-size: 13px; }
+
+  /* Rows */
+  .list-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 0.5px solid rgba(0,0,0,0.07); cursor: pointer; }
+  .list-row:last-child { border-bottom: none; }
+  .list-row:active { background: rgba(0,0,0,0.03); margin: 0 -14px; padding: 9px 14px; border-radius: 8px; }
+
+  /* Avatar */
+  .av { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .av-lg { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+  .av-colors { --colors: #EEEDFE,#534AB7|#E1F5EE,#085041|#FAEEDA,#633806|#FBEAF0,#72243E|#E6F1FB,#0C447C|#EAF3DE,#3B6D11|#FAC775,#412402; }
+
+  /* Tags */
+  .tag { font-size: 10px; padding: 2px 7px; border-radius: 6px; font-weight: 500; white-space: nowrap; display: inline-block; }
+  .tag-purple { background: var(--purple-light); color: var(--purple); }
+  .tag-teal { background: #E1F5EE; color: #085041; }
+  .tag-amber { background: var(--orange-light); color: var(--orange-dark); }
+  .tag-blue { background: #E6F1FB; color: #0C447C; }
+  .tag-green { background: var(--green-light); color: #3B6D11; }
+
+  /* Status badges */
+  .badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+  .badge-due { background: var(--orange-light); color: var(--orange-dark); }
+  .badge-ok { background: var(--green-light); color: #3B6D11; }
+  .badge-none { background: var(--gray-mid); color: #5F5E5A; }
+  .badge-done { background: var(--green-light); color: #3B6D11; }
+  .badge-warn { background: var(--orange-light); color: var(--orange-dark); }
+
+  /* Row right side */
+  .row-right { text-align: right; flex-shrink: 0; }
+  .row-amt { font-size: 13px; font-weight: 700; }
+  .row-sub { font-size: 11px; margin-top: 3px; }
+
+  /* Tags row */
+  .tags-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+
+  /* Summary box */
+  .summary-box { background: var(--purple-light); border-radius: 10px; padding: 12px 14px; margin: 8px 0; border: 0.5px solid var(--purple-mid); }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; }
+  .summary-row + .summary-row { margin-top: 6px; }
+  .summary-lbl { font-size: 12px; color: var(--purple); }
+  .summary-val { font-size: 15px; font-weight: 700; color: var(--purple-dark); }
+  .summary-val.green { color: var(--green); font-size: 13px; }
+  .divider { height: 0.5px; background: var(--purple-mid); margin: 8px 0; }
+
+  /* Plan block */
+  .plan-block { padding: 10px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06); }
+  .plan-block:last-child { border-bottom: none; }
+  .plan-block-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .plan-block-name { font-size: 14px; font-weight: 600; }
+  .plan-block-sub { font-size: 11px; color: var(--gray); margin-top: 2px; }
+  .plan-block-row { display: flex; justify-content: space-between; margin-top: 4px; }
+  .plan-block-lbl { font-size: 11px; color: var(--gray); }
+  .plan-block-val { font-size: 11px; font-weight: 500; }
+  .plan-block-val.green { color: var(--green); }
+  .plan-total { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 7px; border-top: 0.5px solid rgba(0,0,0,0.06); }
+  .plan-total-lbl { font-size: 12px; color: var(--gray); }
+  .plan-total-val { font-size: 14px; font-weight: 700; color: var(--purple); }
+
+  /* Buttons */
+  .btn { padding: 11px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: opacity 0.15s; }
+  .btn:active { opacity: 0.8; }
+  .btn-primary { background: var(--purple); color: #fff; }
+  .btn-secondary { background: var(--purple-light); color: var(--purple); }
+  .btn-gray { background: var(--gray-mid); color: #888780; }
+  .btn-danger { background: var(--red-light); color: var(--red); }
+  .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; margin-top: 8px; }
+
+  /* Forms */
+  .form-group { margin-bottom: 12px; }
+  .form-label { font-size: 12px; color: var(--gray); margin-bottom: 5px; display: block; }
+  .form-input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 0.5px solid rgba(0,0,0,0.15); background: var(--gray-light); font-size: 15px; color: var(--text); outline: none; -webkit-appearance: none; }
+  .form-input:focus { border-color: var(--purple); background: #fff; }
+  select.form-input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238e8e93' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  .try-box { background: var(--gray-light); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+  .try-row { display: flex; justify-content: space-between; margin-top: 4px; }
+  .try-row:first-child { margin-top: 0; }
+  .try-lbl { font-size: 12px; color: var(--gray); }
+  .try-val { font-size: 12px; font-weight: 600; color: var(--purple); }
+
+  /* Records */
+  .rec-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid rgba(0,0,0,0.07); }
+  .rec-row:last-child { border-bottom: none; }
+  .rec-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .rec-in { background: var(--green-light); }
+  .rec-out { background: var(--red-light); }
+  .rec-info { flex: 1; min-width: 0; }
+  .rec-title { font-size: 13px; font-weight: 500; }
+  .rec-meta { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+  .rec-date { font-size: 11px; color: var(--gray); }
+  .rec-amt { font-size: 14px; font-weight: 700; flex-shrink: 0; }
+  .amt-in { color: var(--green); }
+  .amt-out { color: var(--red); }
+
+  /* Plan list row */
+  .plan-row { padding: 10px 0; border-bottom: 0.5px solid rgba(0,0,0,0.07); }
+  .plan-row:last-child { border-bottom: none; }
+  .plan-row-name { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+  .plan-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
+  .plan-investors { display: flex; gap: 4px; flex-wrap: wrap; }
+  .inv-pill { font-size: 10px; padding: 2px 8px; border-radius: 7px; background: var(--gray-light); color: var(--purple-dark); border: 0.5px solid var(--purple-mid); }
+
+  /* Bottom sheet */
+  .sheet-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-end; }
+  .sheet-overlay.show { display: flex; }
+  .sheet { background: #fff; border-radius: 20px 20px 0 0; padding: 16px 20px calc(20px + var(--safe-bottom)); width: 100%; max-height: 85vh; overflow-y: auto; }
+  .sheet-handle { width: 36px; height: 4px; background: #D3D1C7; border-radius: 2px; margin: 0 auto 16px; }
+  .sheet-title { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+  .sheet-sub { font-size: 13px; color: var(--gray); margin-bottom: 12px; }
+  .sheet-amt { font-size: 32px; font-weight: 700; color: var(--purple); text-align: center; margin: 10px 0 16px; }
+  .sheet-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06); }
+  .sheet-row:last-of-type { border-bottom: none; }
+  .sheet-lbl { font-size: 13px; color: var(--gray); }
+  .sheet-val { font-size: 13px; font-weight: 600; }
+  .sheet-val.purple { color: var(--purple); }
+  .sheet-val.green { color: var(--green); }
+
+  /* Alert */
+  .alert-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+  .alert-overlay.show { display: flex; }
+  .alert-box { background: #fff; border-radius: 14px; width: 270px; overflow: hidden; }
+  .alert-title { font-size: 17px; font-weight: 700; text-align: center; padding: 20px 16px 6px; }
+  .alert-msg { font-size: 13px; color: var(--gray); text-align: center; padding: 0 16px 16px; line-height: 1.5; }
+  .alert-actions { display: flex; border-top: 0.5px solid var(--border); }
+  .alert-btn { flex: 1; padding: 14px; text-align: center; font-size: 17px; cursor: pointer; color: var(--purple); border: none; background: none; }
+  .alert-btn.destructive { color: var(--red); }
+  .alert-btn + .alert-btn { border-left: 0.5px solid var(--border); font-weight: 600; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.78); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 300; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 40px 20px; color: var(--gray); font-size: 14px; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* Chevron */
+  .chev { color: #C7C7CC; flex-shrink: 0; }
+
+  /* Detail header */
+  .detail-header { display: flex; align-items: center; gap: 14px; padding: 12px 0 14px; border-bottom: 0.5px solid rgba(0,0,0,0.08); margin-bottom: 4px; }
+
+  /* Swipe delete hint */
+  .swipe-hint { font-size: 11px; color: var(--gray); text-align: center; padding: 4px 0 8px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ① 總覽 -->
+  <div id="screen-dashboard" class="screen active">
+    <div class="status-bar"><span class="clock-display"></span></div>
+    <div class="nav-bar"><div class="nav-row">
+      <div class="nav-title">利潤管家</div>
+      <button class="nav-btn-circle" onclick="exportExcel()" title="匯出Excel">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 10v2a1 1 0 001 1h8a1 1 0 001-1v-2" stroke="#8B6343" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div></div>
+    <div class="scroll-area" id="dashboard-content"></div>
+    <div class="tab-bar" id="tabbar-dashboard"></div>
+  </div>
+
+  <!-- ② 投資方案 -->
+  <div id="screen-plans" class="screen">
+    <div class="status-bar"><span class="clock-display"></span></div>
+    <div class="nav-bar"><div class="nav-row">
+      <div class="nav-title">投資方案</div>
+      <button class="nav-btn-circle" onclick="showScreen('add-plan')">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="7" y1="1" x2="7" y2="13" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="7" x2="13" y2="7" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div></div>
+    <div class="scroll-area" id="plans-content"></div>
+    <div class="tab-bar" id="tabbar-plans"></div>
+  </div>
+
+  <!-- ③ 新增/編輯方案 -->
+  <div id="screen-add-plan" class="screen">
+    <div class="status-bar"><span class="clock-display"></span></div>
+    <div class="nav-bar"><div class="nav-row">
+      <span class="nav-action" onclick="goBack()">取消</span>
+      <div class="nav-title" id="plan-form-title">新增方案</div>
+      <span class="nav-action" style="font-weight:700" onclick="savePlan()">儲存</span>
+    </div></div>
+    <div class="scroll-area">
+      <div class="card" style="margin-top:4px">
+        <div class="form-group"><label class="form-label">方案名稱</label><input class="form-input" id="f-plan-name" type="text" placeholder="例：穩健方案 A"></div>
+        <div class="form-group"><label class="form-label">起始日期</label><input class="form-input" id="f-plan-start" type="date"></div>
+        <div class="form-group"><label class="form-label">週期（月）</label><input class="form-input" id="f-plan-months" type="number" inputmode="numeric" placeholder="6" oninput="calcTry()"></div>
+        <div class="form-group"><label class="form-label">週期總報酬率 %</label><input class="form-input" id="f-plan-rate" type="number" inputmode="decimal" placeholder="10" oninput="calcTry()"></div>
+        <div class="form-group"><label class="form-label">投資人 % （給投資人的報酬）</label><input class="form-input" id="f-plan-investor-rate" type="number" inputmode="decimal" placeholder="7" oninput="calcTry()"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">我的 % （我的利潤）</label><input class="form-input" id="f-plan-my-rate" type="number" inputmode="decimal" placeholder="3" oninput="calcTry()"></div>
+      </div>
+      <div class="try-box" id="try-box" style="display:none">
+        <div class="sec-lbl" style="margin:0 0 6px">即時試算</div>
+        <div class="try-row"><span class="try-lbl">月化報酬率</span><span class="try-val" id="try-monthly">—</span></div>
+        <div class="try-row"><span class="try-lbl">預計到期日</span><span class="try-val" id="try-maturity">—</span></div>
+        <div class="try-row"><span class="try-lbl">投入 100 萬，總收益</span><span class="try-val" id="try-earn">—</span></div>
+        <div class="try-row"><span class="try-lbl">投資人收益</span><span class="try-val" id="try-investor-earn">—</span></div>
+        <div class="try-row"><span class="try-lbl">我的利潤</span><span class="try-val" id="try-my-earn">—</span></div>
+      </div>
+      <div id="plan-delete-btn"></div>
+    </div>
+  </div>
+
+  <!-- ③b 方案明細 -->
+  <div id="screen-plan-detail" class="screen">
+    <div class="status-bar"><span class="clock-display"></span></div>
+    <div class="nav-bar"><div class="nav-row">
+      <div class="nav-back" onclick="goBack()">
+        <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M8 2L2 8l6 6" stroke="#534AB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        投資方案
+      </div>
+      <span class="nav-action" id="plan-detail-edit-btn">編輯</span>
+    </div></div>
+    <div class="scroll-area" id="plan-detail-content"></div>
+  </div>
+
+  <!-- ④ 投資人列表 -->
+  <div id="screen-investors" class="screen">
+    <div class="status-bar"><span class="clock-display"></span></div>
+    <div class="nav-bar">
+      <div class="nav-row">
+        <div class="nav-title">投資人</div>
+        <button class="nav-btn-circle" onclick="showScreen('add-investment')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="7" y1="1" x2="7" y2="13" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="7" x2="13" y2="7" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="search-bar"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="#8e8e93" stroke-width="1.5"/><line x1="8.5" y1="8.5" x2="11.5" y2="11.5" stroke="#8e8e93" stroke-width="1.5" stroke-linecap="round"/></svg><input type="text" id="investor-search" placeholder="搜尋投資人" oninput="renderInvestors()"></div>
+    </div>
+    <div class="scroll-area" id="investors-content"></div>
+    <div class="tab-bar" id="tabbar-investors"></div>
+  </div>
+
+  <!-- ⑤ 投資人詳情 -->
+  <div id="screen-investor-detail" class="screen">
+    <div class="status-bar"><span class="clock-display"></span></div>
+    <div class="nav-bar"><div class="nav-row">
+      <div class="nav-back" onclick="goBack()">
+        <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M8 2L2 8l6 6" stroke="#534AB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        投資人
+      </div>
+      <span class="nav-action" onclick="showAddInvestmentForCurrentInvestor()">+ 新增方案</span>
+    </div></div>
+    <div class="scroll-area" id="investor-detail-content"></div>
+  </div>
+
+  <!-- ⑥ 新增投資紀錄 -->
+  <div id="screen-add-investment" class="screen">
+    <div class="status-bar"><span class="clock-display"></span></div>
+    <div class="nav-bar"><div class="nav-row">
+      <span class="nav-action" onclick="goBack()">取消</span>
+      <div class="nav-title">新增投資</div>
+      <span class="nav-action" style="font-weight:700" onclick="saveInvestment()">儲存</span>
+    </div></div>
+    <div class="scroll-area">
+      <div class="card" style="margin-top:4px">
+        <div class="form-group"><label class="form-label">投資人姓名</label><input class="form-input" id="f-inv-name" type="text" placeholder="王大明"></div>
+        <div class="form-group"><label class="form-label">選擇方案</label><select class="form-input" id="f-inv-plan" onchange="updateMaturity()"><option value="">— 請先新增方案 —</option></select></div>
+        <div class="form-group"><label class="form-label">投入金額（元）</label><input class="form-input" id="f-inv-amount" type="number" inputmode="numeric" placeholder="100000"></div>
+        <div class="form-group"><label class="form-label">起始日期</label><input class="form-input" id="f-inv-start" type="date" oninput="updateMaturity()"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">到期日</label><div class="form-input" id="f-inv-maturity" style="color:var(--gray);background:var(--gray-light)">自動計算</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑦ 收付紀錄 -->
+  <div id="screen-records" class="screen">
+    <div class="status-bar"><span class="clock-display"></span></div>
+    <div class="nav-bar"><div class="nav-row">
+      <div class="nav-title">收付紀錄</div>
+      <button class="nav-btn-circle" onclick="showScreen('add-record')">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="7" y1="1" x2="7" y2="13" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="7" x2="13" y2="7" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div></div>
+    <div class="scroll-area" id="records-content"></div>
+    <div class="tab-bar" id="tabbar-records"></div>
+  </div>
+
+  <!-- ⑧ 新增收付紀錄 -->
+  <div id="screen-add-record" class="screen">
+    <div class="status-bar"><span class="clock-display"></span></div>
+    <div class="nav-bar"><div class="nav-row">
+      <span class="nav-action" onclick="goBack()">取消</span>
+      <div class="nav-title">新增紀錄</div>
+      <span class="nav-action" style="font-weight:700" onclick="saveRecord()">儲存</span>
+    </div></div>
+    <div class="scroll-area">
+      <div class="card" style="margin-top:4px">
+        <div class="form-group"><label class="form-label">類型</label>
+          <select class="form-input" id="f-rec-type">
+            <option value="in">收款（投資人入金）</option>
+            <option value="out">付款（到期本利）</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">相關投資人（選填）</label><input class="form-input" id="f-rec-investor" type="text" placeholder="王大明"></div>
+        <div class="form-group"><label class="form-label">金額（元）</label><input class="form-input" id="f-rec-amount" type="number" inputmode="numeric" placeholder="100000"></div>
+        <div class="form-group"><label class="form-label">日期</label><input class="form-input" id="f-rec-date" type="date"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">備註（選填）</label><input class="form-input" id="f-rec-note" type="text" placeholder="可選填"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 確認出款 Sheet -->
+<div class="sheet-overlay" id="pay-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">確認出款</div>
+    <div class="sheet-sub" id="pay-sheet-sub"></div>
+    <div class="sheet-amt" id="pay-sheet-amt"></div>
+    <div class="sheet-row"><span class="sheet-lbl">本金</span><span class="sheet-val" id="pay-principal"></span></div>
+    <div class="sheet-row"><span class="sheet-lbl">收益</span><span class="sheet-val green" id="pay-return"></span></div>
+    <div class="sheet-row"><span class="sheet-lbl">到期日</span><span class="sheet-val" id="pay-maturity"></span></div>
+    <div class="sheet-row"><span class="sheet-lbl">出款日期</span><span class="sheet-val purple" id="pay-date"></span></div>
+    <div class="sheet-row"><span class="sheet-lbl">備註</span><input style="border:none;outline:none;font-size:13px;font-weight:600;color:var(--gray);text-align:right;width:60%;background:transparent" id="pay-note" placeholder="可選填"></div>
+    <button class="btn btn-primary" onclick="confirmPayout()">確認出款並記錄</button>
+    <button class="btn btn-gray" onclick="closeSheet()" style="margin-top:8px">取消</button>
+  </div>
+</div>
+
+<!-- Alert -->
+<div class="alert-overlay" id="alert-overlay">
+  <div class="alert-box">
+    <div class="alert-title" id="alert-title"></div>
+    <div class="alert-msg" id="alert-msg"></div>
+    <div class="alert-actions">
+      <button class="alert-btn" onclick="closeAlert()">取消</button>
+      <button class="alert-btn destructive" id="alert-confirm-btn">刪除</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Data ───────────────────────────────────────────────
+const DB = {
+  load(k) { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } },
+  save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+};
+let plans = DB.load('plans');
+let investments = DB.load('investments');
+let records = DB.load('records');
+
+function saveAll() {
+  DB.save('plans', plans);
+  DB.save('investments', investments);
+  DB.save('records', records);
+}
+
+// ─── Helpers ────────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// 取本地日期（台灣時區正確）
+function today() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function fmt(n) { return Number(n).toLocaleString('zh-TW'); }
+function fmtD(d) { return d ? d.replace(/-/g,'/') : '—'; }
+
+// 加月份（本地時區）
+function addMonths(dateStr, m) {
+  const parts = dateStr.split('-');
+  const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  d.setMonth(d.getMonth() + Number(m));
+  const y2 = d.getFullYear();
+  const m2 = String(d.getMonth() + 1).padStart(2, '0');
+  const d2 = String(d.getDate()).padStart(2, '0');
+  return `${y2}-${m2}-${d2}`;
+}
+
+// 計算剩餘天數（本地時區）
+function daysLeft(dateStr) {
+  if (!dateStr) return 999;
+  const parts = dateStr.split('-');
+  const target = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  const now = new Date();
+  const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.ceil((target - todayDate) / 86400000);
+}
+
+function getPlan(id) { return plans.find(p => p.id === id); }
+
+// 投資人收益 = 用 investorRate（若有設），否則用 rate
+function calcReturn(inv) {
+  const p = getPlan(inv.planId);
+  if (!p) return 0;
+  const rate = (p.investorRate !== undefined && p.investorRate !== '' && p.investorRate > 0)
+    ? p.investorRate : p.rate;
+  return Math.round(inv.amount * rate / 100);
+}
+
+// 我的利潤
+function calcMyProfit(inv) {
+  const p = getPlan(inv.planId);
+  if (!p || !p.myRate) return 0;
+  return Math.round(inv.amount * p.myRate / 100);
+}
+
+function calcTotal(inv) { return inv.amount + calcReturn(inv); }
+
+function investorStatus(name) {
+  const invs = investments.filter(i => i.name === name && !i.paid);
+  if (!invs.length) return 'none';
+  if (invs.some(i => daysLeft(i.maturity) <= 0)) return 'due';
+  return 'ok';
+}
+
+function investorStatusBadge(name) {
+  const s = investorStatus(name);
+  if (s === 'due') return `<span class="badge badge-due">有方案到期</span>`;
+  if (s === 'ok') return `<span class="badge badge-ok">全部進行中</span>`;
+  return `<span class="badge badge-none">無進行中</span>`;
+}
+
+function planStatusBadge(inv) {
+  if (inv.paid) return `<span class="badge badge-done">已結清</span>`;
+  const d = daysLeft(inv.maturity);
+  if (d <= 0) return `<span class="badge badge-due">已到期</span>`;
+  return `<span class="badge badge-ok">進行中</span>`;
+}
+
+const AV_COLORS = [
+  ['#EEEDFE','#534AB7'], ['#E1F5EE','#085041'], ['#FAEEDA','#633806'],
+  ['#FBEAF0','#72243E'], ['#E6F1FB','#0C447C'], ['#EAF3DE','#3B6D11'],
+  ['#FAC775','#412402'], ['#F0997B','#4A1B0C'],
+];
+function avColor(name) {
+  let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+  return AV_COLORS[h % AV_COLORS.length];
+}
+function avInitials(name) { return name.slice(0,2); }
+function avHTML(name, size='normal') {
+  const [bg, fg] = avColor(name);
+  const cls = size === 'lg' ? 'av-lg' : 'av';
+  return `<div class="${cls}" style="background:${bg};color:${fg}">${avInitials(name)}</div>`;
+}
+
+// ─── Navigation ─────────────────────────────────────────
+let screenStack = ['dashboard'];
+let editingPlanId = null;
+let currentInvestorName = null;
+let pendingPayoutInvId = null;
+
+function showScreen(name, push=true) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (push) screenStack.push(name);
+  renderScreen(name);
+}
+
+function goBack() {
+  screenStack.pop();
+  const prev = screenStack[screenStack.length - 1];
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + prev).classList.add('active');
+  renderScreen(prev);
+}
+
+function renderScreen(name) {
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'plans') renderPlans();
+  if (name === 'investors') renderInvestors();
+  if (name === 'investor-detail') renderInvestorDetail();
+  if (name === 'records') renderRecords();
+  if (name === 'add-plan') setupPlanForm();
+  if (name === 'add-investment') setupInvestmentForm();
+  if (name === 'plan-detail') renderPlanDetail();
+}
+
+// ─── Tab bar ────────────────────────────────────────────
+function tabbarHTML(active) {
+  const tabs = [
+    { id:'dashboard', label:'總覽', icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="13" width="5" height="8" rx="1" ${active==='dashboard'?'fill="#534AB7"':'stroke="#8e8e93" stroke-width="1.5"'}/><rect x="10" y="8" width="5" height="13" rx="1" ${active==='dashboard'?'fill="#534AB7"':'stroke="#8e8e93" stroke-width="1.5"'}/><rect x="17" y="4" width="5" height="17" rx="1" ${active==='dashboard'?'fill="#534AB7"':'stroke="#8e8e93" stroke-width="1.5"'}/></svg>` },
+    { id:'plans', label:'方案', icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2" ${active==='plans'?'fill="#534AB7"':'stroke="#8e8e93" stroke-width="1.5"'}/><line x1="8" y1="8" x2="16" y2="8" stroke="${active==='plans'?'#fff':'#8e8e93'}" stroke-width="1.5"/><line x1="8" y1="12" x2="16" y2="12" stroke="${active==='plans'?'#fff':'#8e8e93'}" stroke-width="1.5"/><line x1="8" y1="16" x2="12" y2="16" stroke="${active==='plans'?'#fff':'#8e8e93'}" stroke-width="1.5"/></svg>` },
+    { id:'investors', label:'投資人', icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.5" ${active==='investors'?'fill="#534AB7"':'stroke="#8e8e93" stroke-width="1.5"'}/><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" ${active==='investors'?'fill="#534AB7"':'stroke="#8e8e93" stroke-width="1.5" fill="none" stroke-linecap="round"'}/><circle cx="17" cy="9" r="2.5" stroke="${active==='investors'?'#534AB7':'#8e8e93'}" stroke-width="1.5"/><path d="M19 19c0-2.2-1.3-4.1-3-5" stroke="${active==='investors'?'#534AB7':'#8e8e93'}" stroke-width="1.5" stroke-linecap="round"/></svg>` },
+    { id:'records', label:'紀錄', icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" ${active==='records'?'fill="#534AB7"':'stroke="#8e8e93" stroke-width="1.5"'}/><path d="M7 10h10M7 14h6" stroke="${active==='records'?'#fff':'#8e8e93'}" stroke-width="1.5" stroke-linecap="round"/></svg>` },
+  ];
+  return tabs.map(t => `
+    <div class="tab-item ${active===t.id?'active':''}" onclick="switchTab('${t.id}')">
+      ${t.icon}<span>${t.label}</span>
+    </div>`).join('');
+}
+
+function switchTab(id) {
+  screenStack = [id];
+  showScreen(id, false);
+}
+
+['dashboard','plans','investors','records'].forEach(id => {
+  const el = document.getElementById('tabbar-' + id);
+  if (el) el.innerHTML = tabbarHTML(id);
+});
+
+// ─── Dashboard ──────────────────────────────────────────
+function renderDashboard() {
+  const active = investments.filter(i => !i.paid);
+  const totalIn = active.reduce((s,i) => s + i.amount, 0);
+  const totalRet = active.reduce((s,i) => s + calcReturn(i), 0);
+  const due = active.filter(i => daysLeft(i.maturity) <= 0);
+  const soon = active.filter(i => daysLeft(i.maturity) > 0 && daysLeft(i.maturity) <= 10);
+
+  // 我的利潤合計（跨所有方案）
+  const myProfit = active.reduce((s,i) => s + calcMyProfit(i), 0);
+
+  let html = `
+    <div class="metric-grid">
+      <div class="metric-box"><div class="metric-label">管理中本金</div><div class="metric-val small">NT$${fmt(totalIn)}</div></div>
+      <div class="metric-box"><div class="metric-label">投資人收益合計</div><div class="metric-val green small">NT$${fmt(totalRet)}</div></div>
+      <div class="metric-box"><div class="metric-label">我的利潤合計</div><div class="metric-val small" style="color:var(--purple)">NT$${fmt(myProfit)}</div></div>
+      <div class="metric-box"><div class="metric-label">10天內到期</div><div class="metric-val ${soon.length?'orange':''}"> ${soon.length} 筆</div></div>
+    </div>`;
+
+  if (due.length) {
+    html += `<div class="sec-lbl">已到期</div><div class="card">`;
+    html += due.map(inv => dashInvRow(inv)).join('');
+    html += `</div>`;
+  }
+  if (soon.length) {
+    html += `<div class="sec-lbl">10天內到期</div><div class="card">`;
+    html += soon.map(inv => dashInvRow(inv)).join('');
+    html += `</div>`;
+  }
+  html += `<div class="sec-lbl">所有投資</div><div class="card">`;
+  if (!active.length) html += `<div class="empty">尚無投資紀錄</div>`;
+  else html += active.map(inv => dashInvRow(inv)).join('');
+  html += `</div>`;
+
+  document.getElementById('dashboard-content').innerHTML = html;
+  document.getElementById('tabbar-dashboard').innerHTML = tabbarHTML('dashboard');
+}
+
+function dashInvRow(inv) {
+  const p = getPlan(inv.planId);
+  const d = daysLeft(inv.maturity);
+  const statusColor = d <= 0 ? 'orange' : d <= 30 ? 'orange' : 'green';
+  const statusTxt = inv.paid ? '已結清' : d <= 0 ? '已到期' : d <= 30 ? `${d}天後到期` : '進行中';
+  return `<div class="list-row" onclick="openInvestorDetail('${inv.name}')">
+    ${avHTML(inv.name)}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600">${inv.name}</div>
+      <div style="font-size:11px;color:var(--gray);margin-top:2px">${p?p.name:'—'} · 到期 ${fmtD(inv.maturity)}</div>
+    </div>
+    <div class="row-right">
+      <div class="row-amt">NT$${fmt(calcTotal(inv))}</div>
+      <div class="row-sub" style="color:var(--${statusColor})">${statusTxt}</div>
+    </div>
+    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" class="chev"><path d="M1 1l6 6-6 6" stroke="#C7C7CC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>`;
+}
+
+// ─── Plans ──────────────────────────────────────────────
+function renderPlans() {
+  const el = document.getElementById('plans-content');
+  if (!plans.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div>尚無方案<br>點右上角「+」新增</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="sec-lbl">${plans.length} 個方案</div><div class="card">` +
+    plans.map(p => {
+      const monthly = p.months > 0 ? ((p.investorRate > 0 ? p.investorRate : p.rate) / p.months).toFixed(2) : '0';
+      const invs = investments.filter(i => i.planId === p.id && !i.paid);
+      const names = [...new Set(invs.map(i => i.name))];
+      return `<div class="plan-row" onclick="openPlanDetail('${p.id}')" style="cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="plan-row-name">${p.name}</div>
+          <svg width="8" height="14" viewBox="0 0 8 14" fill="none" class="chev"><path d="M1 1l6 6-6 6" stroke="#C7C7CC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="plan-meta">
+          <span class="tag tag-purple">${p.months} 個月</span>
+          <span class="tag tag-purple">月化 ${monthly}%</span>
+          ${p.investorRate ? `<span class="tag tag-teal">投資人 ${p.investorRate}%</span>` : ''}
+          ${p.myRate ? `<span class="tag tag-green">我的 ${p.myRate}%</span>` : ''}
+        </div>
+        ${names.length ? `<div class="plan-investors">${names.map(n=>`<span class="inv-pill">${n}</span>`).join('')}</div>` : ''}
+      </div>`;
+    }).join('') + `</div>`;
+  document.getElementById('tabbar-plans').innerHTML = tabbarHTML('plans');
+}
+
+function setupPlanForm() {
+  const editing = editingPlanId ? getPlan(editingPlanId) : null;
+  document.getElementById('plan-form-title').textContent = editing ? '編輯方案' : '新增方案';
+  document.getElementById('f-plan-name').value = editing ? editing.name : '';
+  document.getElementById('f-plan-start').value = editing ? (editing.start || today()) : today();
+  document.getElementById('f-plan-months').value = editing ? editing.months : '';
+  document.getElementById('f-plan-rate').value = editing ? editing.rate : '';
+  document.getElementById('f-plan-investor-rate').value = editing ? (editing.investorRate || '') : '';
+  document.getElementById('f-plan-my-rate').value = editing ? (editing.myRate || '') : '';
+  document.getElementById('try-box').style.display = 'none';
+  const del = document.getElementById('plan-delete-btn');
+  del.innerHTML = editing ? `<button class="btn btn-danger" onclick="deletePlanConfirm('${editingPlanId}')">刪除此方案</button>` : '';
+  calcTry();
+}
+
+function calcTry() {
+  const m = parseFloat(document.getElementById('f-plan-months').value);
+  const r = parseFloat(document.getElementById('f-plan-rate').value);
+  const ir = parseFloat(document.getElementById('f-plan-investor-rate').value);
+  const mr = parseFloat(document.getElementById('f-plan-my-rate').value);
+  const start = document.getElementById('f-plan-start').value;
+  const box = document.getElementById('try-box');
+  if (!isNaN(m) && !isNaN(r) && m > 0) {
+    box.style.display = 'block';
+    const monthly = (( !isNaN(ir) && ir > 0 ? ir : r) / m).toFixed(2);
+    document.getElementById('try-monthly').textContent = monthly + '%';
+    document.getElementById('try-earn').textContent = 'NT$' + fmt(Math.round(1000000 * r / 100));
+    const tryInv = document.getElementById('try-investor-earn');
+    const tryMe = document.getElementById('try-my-earn');
+    const tryMat = document.getElementById('try-maturity');
+    if (tryInv) tryInv.textContent = !isNaN(ir) ? 'NT$' + fmt(Math.round(1000000 * ir / 100)) : '—';
+    if (tryMe) tryMe.textContent = !isNaN(mr) ? 'NT$' + fmt(Math.round(1000000 * mr / 100)) : '—';
+    if (tryMat) tryMat.textContent = start ? fmtD(addMonths(start, m)) : '（請選起始日期）';
+  } else { box.style.display = 'none'; }
+}
+
+function savePlan() {
+  const name = document.getElementById('f-plan-name').value.trim();
+  const start = document.getElementById('f-plan-start').value;
+  const months = parseInt(document.getElementById('f-plan-months').value);
+  const rate = parseFloat(document.getElementById('f-plan-rate').value);
+  const investorRate = parseFloat(document.getElementById('f-plan-investor-rate').value) || 0;
+  const myRate = parseFloat(document.getElementById('f-plan-my-rate').value) || 0;
+  if (!name || !start || isNaN(months) || isNaN(rate) || months <= 0) { showToast('請填寫完整資訊'); return; }
+  const maturity = addMonths(start, months);
+  if (editingPlanId) {
+    const p = getPlan(editingPlanId);
+    p.name = name; p.start = start; p.maturity = maturity;
+    p.months = months; p.rate = rate; p.investorRate = investorRate; p.myRate = myRate;
+    editingPlanId = null;
+  } else {
+    plans.push({ id: uid(), name, start, maturity, months, rate, investorRate, myRate });
+  }
+  saveAll(); goBack(); showToast('方案已儲存');
+}
+
+function editPlan(id) {
+  editingPlanId = id;
+  showScreen('add-plan');
+}
+
+let currentPlanId = null;
+
+function openPlanDetail(id) {
+  currentPlanId = id;
+  showScreen('plan-detail');
+}
+
+function renderPlanDetail() {
+  const p = getPlan(currentPlanId);
+  if (!p) return;
+  const el = document.getElementById('plan-detail-content');
+  const editBtn = document.getElementById('plan-detail-edit-btn');
+  editBtn.onclick = () => editPlan(currentPlanId);
+
+  const invs = investments.filter(i => i.planId === p.id);
+  const activeInvs = invs.filter(i => !i.paid);
+  const totalPrincipal = activeInvs.reduce((s,i) => s + i.amount, 0);
+  const totalReturn = activeInvs.reduce((s,i) => s + calcReturn(i), 0);
+  const myProfit = activeInvs.reduce((s,i) => s + calcMyProfit(i), 0);
+  const monthly = p.months > 0 ? ((p.investorRate > 0 ? p.investorRate : p.rate) / p.months).toFixed(2) : '0';
+
+  let html = `
+  <div style="padding:12px 0 14px;border-bottom:0.5px solid rgba(0,0,0,.08);margin-bottom:4px">
+    <div style="font-size:20px;font-weight:700">${p.name}</div>
+    <div style="font-size:12px;color:var(--gray);margin-top:5px">${p.start ? fmtD(p.start) + ' → ' + fmtD(p.maturity) : ''}</div>
+    <div class="tags-row" style="margin-top:8px">
+      <span class="tag tag-purple">${p.months} 個月</span>
+      <span class="tag tag-purple">月化 ${monthly}%</span>
+      ${p.investorRate ? `<span class="tag tag-teal">投資人 ${p.investorRate}%</span>` : ''}
+      ${p.myRate ? `<span class="tag tag-green">我的 ${p.myRate}%</span>` : ''}
+    </div>
+  </div>
+
+  <div class="summary-box">
+    <div class="summary-row"><span class="summary-lbl">進行中本金合計</span><span class="summary-val" style="font-size:13px">NT$${fmt(totalPrincipal)}</span></div>
+    <div class="divider"></div>
+    <div class="summary-row"><span class="summary-lbl">投資人收益合計</span><span class="summary-val green">+NT$${fmt(totalReturn)}</span></div>
+    ${p.myRate ? `<div class="summary-row"><span class="summary-lbl">我的利潤合計</span><span class="summary-val" style="color:var(--purple)">+NT$${fmt(myProfit)}</span></div>` : ''}
+  </div>
+
+  <div class="sec-lbl">參與投資人（${invs.length} 筆）</div>
+  <div class="card">`;
+
+  if (!invs.length) {
+    html += `<div class="empty">尚無投資人加入此方案</div>`;
+  } else {
+    html += invs.map(inv => {
+      const ret = calcReturn(inv);
+      const myP = calcMyProfit(inv);
+      const d = daysLeft(inv.maturity);
+      const statusColor = inv.paid ? 'var(--gray)' : d <= 0 ? 'var(--orange)' : 'var(--green)';
+      const statusTxt = inv.paid ? '已結清' : d <= 0 ? '已到期' : '進行中';
+      return `<div class="list-row" onclick="openInvestorDetail('${inv.name}')">
+        ${avHTML(inv.name)}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600">${inv.name}</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:2px">本金 NT$${fmt(inv.amount)} · 到期 ${fmtD(inv.maturity)}</div>
+          <div style="font-size:11px;margin-top:2px">
+            <span style="color:var(--green)">收益 +NT$${fmt(ret)}</span>
+            ${p.myRate ? `<span style="color:var(--purple);margin-left:8px">我的 +NT$${fmt(myP)}</span>` : ''}
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:11px;font-weight:600;color:${statusColor}">${statusTxt}</div>
+        </div>
+        <svg width="8" height="14" viewBox="0 0 8 14" fill="none" class="chev"><path d="M1 1l6 6-6 6" stroke="#C7C7CC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>`;
+    }).join('');
+  }
+
+  html += `</div>
+  <button class="btn btn-danger" onclick="deletePlanConfirm('${p.id}')">刪除此方案</button>`;
+  el.innerHTML = html;
+}
+
+function deletePlanConfirm(id) {
+  showAlert('刪除方案', '確定要刪除此方案？相關投資紀錄將失去方案資訊。', () => {
+    plans = plans.filter(p => p.id !== id);
+    saveAll();
+    if (editingPlanId === id) { editingPlanId = null; goBack(); }
+    else renderPlans();
+    showToast('已刪除');
+  });
+}
+
+// ─── Investors ──────────────────────────────────────────
+function renderInvestors() {
+  const el = document.getElementById('investors-content');
+  const q = (document.getElementById('investor-search')?.value || '').toLowerCase();
+  const names = [...new Set(investments.map(i => i.name))].filter(n => n.toLowerCase().includes(q));
+
+  if (!names.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">👤</div>${q?'找不到「'+q+'」':'尚無投資人'}<br>${!q?'點右上角「+」新增':''}</div>`;
+    document.getElementById('tabbar-investors').innerHTML = tabbarHTML('investors');
+    return;
+  }
+  const total = names.length;
+  el.innerHTML = `<div class="sec-lbl">${total} 位投資人</div><div class="card">` +
+    names.map(name => {
+      const invs = investments.filter(i => i.name === name);
+      const activeInvs = invs.filter(i => !i.paid);
+      const totalAmt = activeInvs.reduce((s,i) => s + calcTotal(i), 0);
+      const planNames = [...new Set(activeInvs.map(i => { const p=getPlan(i.planId); return p?p.name:''; }).filter(Boolean))];
+      const tagColors = ['tag-purple','tag-teal','tag-amber','tag-blue','tag-green'];
+      return `<div class="list-row" onclick="openInvestorDetail('${name}')">
+        ${avHTML(name)}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600">${name}</div>
+          <div class="tags-row">${planNames.map((n,i)=>`<span class="tag ${tagColors[i%tagColors.length]}">${n}</span>`).join('')}</div>
+        </div>
+        <div class="row-right">
+          <div class="row-amt">NT$${fmt(totalAmt)}</div>
+          <div style="margin-top:3px">${investorStatusBadge(name)}</div>
+        </div>
+        <svg width="8" height="14" viewBox="0 0 8 14" fill="none" class="chev"><path d="M1 1l6 6-6 6" stroke="#C7C7CC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>`;
+    }).join('') + `</div>`;
+  document.getElementById('tabbar-investors').innerHTML = tabbarHTML('investors');
+}
+
+function openInvestorDetail(name) {
+  currentInvestorName = name;
+  showScreen('investor-detail');
+}
+
+function renderInvestorDetail() {
+  const name = currentInvestorName;
+  const invs = investments.filter(i => i.name === name);
+  const activeInvs = invs.filter(i => !i.paid);
+  const totalIn = activeInvs.reduce((s,i) => s + i.amount, 0);
+  const totalOut = activeInvs.reduce((s,i) => s + calcTotal(i), 0);
+  const totalRet = totalOut - totalIn;
+
+  let html = `<div class="detail-header">
+    ${avHTML(name, 'lg')}
+    <div>
+      <div style="font-size:18px;font-weight:700">${name}</div>
+      <div style="font-size:12px;color:var(--gray);margin-top:3px">參與 ${invs.length} 個方案</div>
+    </div>
+  </div>
+  <div class="summary-box">
+    <div class="summary-row"><span class="summary-lbl">投入本金合計</span><span class="summary-val" style="font-size:13px">NT$${fmt(totalIn)}</span></div>
+    <div class="divider"></div>
+    <div class="summary-row"><span class="summary-lbl">預計收益合計</span><span class="summary-val green">+NT$${fmt(totalRet)}</span></div>
+  </div>
+  <div class="sec-lbl">參與方案</div>
+  <div class="card">`;
+
+  if (!invs.length) html += `<div class="empty">尚無投資紀錄</div>`;
+  else html += invs.map(inv => {
+    const p = getPlan(inv.planId);
+    const ret = calcReturn(inv);
+    const total = calcTotal(inv);
+    const d = daysLeft(inv.maturity);
+    const canPay = !inv.paid && d <= 0;
+    const monthly = p && p.months > 0
+      ? ((p.investorRate > 0 ? p.investorRate : p.rate) / p.months).toFixed(2)
+      : '—';
+    return `<div class="plan-block">
+      <div class="plan-block-top">
+        <div>
+          <div class="plan-block-name">${p ? p.name : '已刪除方案'}</div>
+          <div class="plan-block-sub">${p ? p.months+'個月 · 月化'+monthly+'%' : ''}</div>
+        </div>
+        ${planStatusBadge(inv)}
+      </div>
+      <div class="plan-block-row"><span class="plan-block-lbl">投入本金</span><span class="plan-block-val">NT$${fmt(inv.amount)}</span></div>
+      <div class="plan-block-row"><span class="plan-block-lbl">到期收益</span><span class="plan-block-val green">+NT$${fmt(ret)}</span></div>
+      <div class="plan-block-row"><span class="plan-block-lbl">起始日</span><span class="plan-block-val">${fmtD(inv.start)}</span></div>
+      <div class="plan-block-row"><span class="plan-block-lbl">到期日</span><span class="plan-block-val">${fmtD(inv.maturity)}</span></div>
+      ${inv.paid
+        ? `<button class="btn btn-gray" style="margin-top:8px" disabled>已結清</button>`
+        : canPay
+          ? `<button class="btn btn-primary" style="margin-top:8px" onclick="openPaySheet('${inv.id}')">確認出款 NT$${fmt(total)}</button>`
+          : `<button class="btn btn-gray" style="margin-top:8px" disabled>尚未到期</button>`
+      }
+      ${!inv.paid ? `<button class="btn btn-danger" style="margin-top:6px" onclick="deleteInvConfirm('${inv.id}')">刪除此紀錄</button>` : ''}
+    </div>`;
+  }).join('');
+
+  html += `</div>`;
+  document.getElementById('investor-detail-content').innerHTML = html;
+}
+
+function showAddInvestmentForCurrentInvestor() {
+  showScreen('add-investment');
+  setTimeout(() => {
+    document.getElementById('f-inv-name').value = currentInvestorName || '';
+  }, 50);
+}
+
+function deleteInvConfirm(id) {
+  showAlert('刪除投資紀錄', '確定要刪除這筆投資紀錄？', () => {
+    investments = investments.filter(i => i.id !== id);
+    saveAll();
+    renderInvestorDetail();
+    showToast('已刪除');
+  });
+}
+
+// ─── Investment Form ─────────────────────────────────────
+function setupInvestmentForm() {
+  document.getElementById('f-inv-start').value = today();
+  const sel = document.getElementById('f-inv-plan');
+  sel.innerHTML = plans.length
+    ? plans.map(p => `<option value="${p.id}">${p.name}（${p.months}個月 / ${p.rate}%）</option>`).join('')
+    : `<option value="">— 請先新增方案 —</option>`;
+  updateMaturity();
+}
+
+function updateMaturity() {
+  const planId = document.getElementById('f-inv-plan').value;
+  const start = document.getElementById('f-inv-start').value;
+  const el = document.getElementById('f-inv-maturity');
+  if (planId && start) {
+    const p = getPlan(planId);
+    if (p) { el.textContent = fmtD(addMonths(start, p.months)); return; }
+  }
+  el.textContent = '自動計算';
+}
+
+function saveInvestment() {
+  const name = document.getElementById('f-inv-name').value.trim();
+  const planId = document.getElementById('f-inv-plan').value;
+  const amount = parseFloat(document.getElementById('f-inv-amount').value);
+  const start = document.getElementById('f-inv-start').value;
+  if (!name || !planId || isNaN(amount) || !start) { showToast('請填寫完整資訊'); return; }
+  const p = getPlan(planId);
+  if (!p) { showToast('請選擇有效方案'); return; }
+  const maturity = addMonths(start, p.months);
+  investments.push({ id: uid(), name, planId, amount, start, maturity, paid: false });
+  saveAll();
+  if (currentInvestorName === name) {
+    goBack();
+  } else {
+    currentInvestorName = name;
+    screenStack = ['investors', 'investor-detail'];
+    showScreen('investor-detail', false);
+  }
+  showToast('投資紀錄已新增');
+}
+
+// ─── Payout Sheet ────────────────────────────────────────
+function openPaySheet(invId) {
+  const inv = investments.find(i => i.id === invId);
+  if (!inv) return;
+  pendingPayoutInvId = invId;
+  const p = getPlan(inv.planId);
+  const ret = calcReturn(inv);
+  const total = calcTotal(inv);
+  document.getElementById('pay-sheet-sub').textContent = `${p?p.name:'—'} · ${inv.name}`;
+  document.getElementById('pay-sheet-amt').textContent = `NT$${fmt(total)}`;
+  document.getElementById('pay-principal').textContent = `NT$${fmt(inv.amount)}`;
+  document.getElementById('pay-return').textContent = `+NT$${fmt(ret)}`;
+  document.getElementById('pay-maturity').textContent = fmtD(inv.maturity);
+  document.getElementById('pay-date').textContent = fmtD(today());
+  document.getElementById('pay-note').value = '';
+  document.getElementById('pay-sheet').classList.add('show');
+}
+
+function closeSheet() {
+  document.getElementById('pay-sheet').classList.remove('show');
+  pendingPayoutInvId = null;
+}
+
+function confirmPayout() {
+  const inv = investments.find(i => i.id === pendingPayoutInvId);
+  if (!inv) return;
+  const p = getPlan(inv.planId);
+  const total = calcTotal(inv);
+  const note = document.getElementById('pay-note').value.trim();
+  inv.paid = true;
+  records.push({
+    id: uid(), type: 'out',
+    investor: inv.name,
+    planName: p ? p.name : '—',
+    amount: total,
+    date: today(),
+    note: note || `${inv.name} · ${p?p.name:'—'} 到期出款`,
+    isPayout: true
+  });
+  saveAll();
+  closeSheet();
+  renderInvestorDetail();
+  showToast('出款完成，已記錄');
+}
+
+// ─── Records ────────────────────────────────────────────
+function renderRecords() {
+  const el = document.getElementById('records-content');
+  if (!records.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📒</div>尚無收付紀錄</div>`;
+    document.getElementById('tabbar-records').innerHTML = tabbarHTML('records');
+    return;
+  }
+  const sorted = [...records].sort((a,b) => b.date.localeCompare(a.date));
+  const byMonth = {};
+  sorted.forEach(r => {
+    const m = r.date.slice(0,7);
+    if (!byMonth[m]) byMonth[m] = [];
+    byMonth[m].push(r);
+  });
+  const typeLabel = { in:'收款', out:'付款', other:'其他' };
+  let html = '';
+  Object.entries(byMonth).forEach(([month, recs]) => {
+    const [y, m] = month.split('-');
+    html += `<div class="sec-lbl">${y} 年 ${parseInt(m)} 月</div><div class="card">`;
+    html += recs.map(r => {
+      const isIn = r.type === 'in';
+      return `<div class="rec-row">
+        <div class="rec-icon ${isIn?'rec-in':'rec-out'}">
+          ${isIn
+            ? `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12V4M4 8l4-4 4 4" stroke="#3B6D11" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+            : `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 4v8M4 8l4 4 4-4" stroke="#A32D2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          }
+        </div>
+        <div class="rec-info">
+          <div class="rec-title">${r.note || (r.investor ? r.investor + ' · ' + typeLabel[r.type] : typeLabel[r.type])}</div>
+          <div class="rec-meta">
+            <span class="rec-date">${fmtD(r.date)}</span>
+            ${r.isPayout ? `<span class="badge badge-done" style="font-size:9px;padding:1px 5px">已結清</span>` : ''}
+          </div>
+        </div>
+        <div class="rec-amt ${isIn?'amt-in':'amt-out'}">${isIn?'+':'-'}NT$${fmt(r.amount)}</div>
+      </div>`;
+    }).join('');
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+  document.getElementById('tabbar-records').innerHTML = tabbarHTML('records');
+}
+
+function setupRecordForm() {
+  document.getElementById('f-rec-date').value = today();
+  document.getElementById('f-rec-investor').value = '';
+  document.getElementById('f-rec-amount').value = '';
+  document.getElementById('f-rec-note').value = '';
+}
+
+function saveRecord() {
+  const type = document.getElementById('f-rec-type').value;
+  const investor = document.getElementById('f-rec-investor').value.trim();
+  const amount = parseFloat(document.getElementById('f-rec-amount').value);
+  const date = document.getElementById('f-rec-date').value;
+  const note = document.getElementById('f-rec-note').value.trim();
+  if (isNaN(amount) || !date) { showToast('請填金額與日期'); return; }
+  records.push({ id: uid(), type, investor, amount, date, note });
+  saveAll();
+  goBack();
+  showToast('紀錄已新增');
+}
+
+// ─── Alert ──────────────────────────────────────────────
+let alertCallback = null;
+function showAlert(title, msg, onConfirm) {
+  document.getElementById('alert-title').textContent = title;
+  document.getElementById('alert-msg').textContent = msg;
+  alertCallback = onConfirm;
+  document.getElementById('alert-overlay').classList.add('show');
+}
+function closeAlert() { document.getElementById('alert-overlay').classList.remove('show'); alertCallback = null; }
+document.getElementById('alert-confirm-btn').onclick = () => { if (alertCallback) alertCallback(); closeAlert(); };
+
+// ─── Toast ──────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─── Clock ──────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = String(now.getMinutes()).padStart(2, '0');
+  document.querySelectorAll('.clock-display').forEach(el => el.textContent = `${h}:${m}`);
+}
+updateClock();
+setInterval(updateClock, 5000);
+
+// ─── Export Excel ────────────────────────────────────────
+function exportExcel() {
+  const wb = buildWorkbook();
+  downloadExcel(wb, `利潤管家_${today()}.xlsx`);
+  showToast('匯出成功！');
+}
+
+function buildWorkbook() {
+  // Sheet 1: 總覽摘要
+  const active = investments.filter(i => !i.paid);
+  const totalIn = active.reduce((s,i) => s + i.amount, 0);
+  const totalRet = active.reduce((s,i) => s + calcReturn(i), 0);
+  const myProfit = active.reduce((s,i) => s + calcMyProfit(i), 0);
+
+  const summary = [
+    ['利潤管家 — 總覽摘要', '', `匯出日期：${fmtD(today())}`],
+    [],
+    ['項目', '金額'],
+    ['管理中本金', totalIn],
+    ['投資人收益合計', totalRet],
+    ['我的利潤合計', myProfit],
+    ['進行中筆數', active.length],
+  ];
+
+  // Sheet 2: 投資方案
+  const planSheet = [
+    ['方案名稱', '週期（月）', '月化率%', '投資人%', '我的%', '進行中人數', '進行中本金'],
+    ...plans.map(p => {
+      const invs = investments.filter(i => i.planId === p.id && !i.paid);
+      const monthly = p.months > 0 ? (p.rate / p.months).toFixed(2) : 0;
+      return [
+        p.name, p.months, monthly,
+        p.investorRate || '', p.myRate || '',
+        invs.length,
+        invs.reduce((s,i) => s + i.amount, 0)
+      ];
+    })
+  ];
+
+  // Sheet 3: 投資人明細
+  const invSheet = [
+    ['投資人', '方案', '本金', '到期收益', '我的利潤', '起始日', '到期日', '狀態'],
+    ...investments.map(inv => {
+      const p = getPlan(inv.planId);
+      const ret = calcReturn(inv);
+      const myP = calcMyProfit(inv);
+      const d = daysLeft(inv.maturity);
+      const status = inv.paid ? '已結清' : d <= 0 ? '已到期' : '進行中';
+      return [
+        inv.name, p ? p.name : '—', inv.amount, ret, myP,
+        fmtD(inv.start), fmtD(inv.maturity), status
+      ];
+    })
+  ];
+
+  // Sheet 4: 收付紀錄
+  const typeLabel = { in: '收款', out: '付款', other: '其他' };
+  const recSheet = [
+    ['日期', '類型', '投資人', '金額', '備註'],
+    ...[...records].sort((a,b) => b.date.localeCompare(a.date)).map(r => [
+      fmtD(r.date), typeLabel[r.type] || r.type,
+      r.investor || '', r.type === 'out' ? -r.amount : r.amount,
+      r.note || ''
+    ])
+  ];
+
+  return { summary, planSheet, invSheet, recSheet };
+}
+
+function downloadExcel(wb, filename) {
+  // 建立 Excel XML 格式（可被 Excel 直接開啟）
+  const sheets = [
+    { name: '總覽摘要', data: wb.summary },
+    { name: '投資方案', data: wb.planSheet },
+    { name: '投資人明細', data: wb.invSheet },
+    { name: '收付紀錄', data: wb.recSheet },
+  ];
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:x="urn:schemas-microsoft-com:office:excel">
+<Styles>
+  <Style ss:ID="header">
+    <Font ss:Bold="1" ss:Size="11"/>
+    <Interior ss:Color="#D4B896" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="title">
+    <Font ss:Bold="1" ss:Size="13" ss:Color="#5C3D1E"/>
+  </Style>
+  <Style ss:ID="number">
+    <NumberFormat ss:Format="#,##0"/>
+  </Style>
+</Styles>`;
+
+  sheets.forEach(sheet => {
+    xml += `<Worksheet ss:Name="${sheet.name}"><Table>`;
+    sheet.data.forEach((row, ri) => {
+      xml += '<Row>';
+      row.forEach((cell, ci) => {
+        const isNum = typeof cell === 'number';
+        const style = ri === 0 ? ' ss:StyleID="header"' : isNum ? ' ss:StyleID="number"' : '';
+        const type = isNum ? 'Number' : 'String';
+        const val = cell === null || cell === undefined ? '' : cell;
+        xml += `<Cell${style}><Data ss:Type="${type}">${String(val).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</Data></Cell>`;
+      });
+      xml += '</Row>';
+    });
+    xml += '</Table></Worksheet>';
+  });
+
+  xml += '</Workbook>';
+
+  const blob = new Blob(['\uFEFF' + xml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+renderDashboard();
+renderPlans();
+renderInvestors();
+renderRecords();
+
+// Close sheet on overlay click
+document.getElementById('pay-sheet').addEventListener('click', function(e) {
+  if (e.target === this) closeSheet();
+});
+</script>
+</body>
+</html>
